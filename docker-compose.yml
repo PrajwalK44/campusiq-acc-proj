@@ -1,0 +1,74 @@
+services:
+  # Dedicated ChromaDB Vector Database Server
+  chromadb:
+    image: chromadb/chroma:0.5.23
+    container_name: campusiq-chromadb
+    restart: unless-stopped
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma-data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/chroma/chroma
+      - ANONYMIZED_TELEMETRY=FALSE
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # FastAPI Backend Service
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: campusiq-backend
+    restart: unless-stopped
+    depends_on:
+      chromadb:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      - backend-uploads:/app/data/uploads
+    environment:
+      - APP_NAME=CampusIQ
+      - APP_ENV=production
+      - DEBUG=false
+      - BACKEND_HOST=0.0.0.0
+      - BACKEND_PORT=8000
+      - FRONTEND_ORIGIN=http://localhost:3000
+      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@localhost:5432/postgres}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-default_secret_key_change_in_production_123456}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - LLM_MODEL=${LLM_MODEL:-llama-3.3-70b-versatile}
+      - CHROMA_MODE=server
+      - CHROMA_SERVER_HOST=chromadb
+      - CHROMA_SERVER_PORT=8000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # Next.js Frontend Service
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: campusiq-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1
+
+volumes:
+  chroma-data:
+    driver: local
+  backend-uploads:
+    driver: local

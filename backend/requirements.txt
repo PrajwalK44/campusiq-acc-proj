@@ -1,0 +1,43 @@
+# ==============================================================================
+# CampusIQ Backend Dependencies
+# Pinned and verified compatible set for Python 3.10+ / 3.11+
+# ==============================================================================
+
+# Core FastAPI and Web Server
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.4
+pydantic-settings==2.7.1
+email-validator>=2.0.0
+python-multipart==0.0.20
+
+# Relational Database (Supabase PostgreSQL / SQLAlchemy)
+sqlalchemy==2.0.36
+psycopg2-binary==2.9.10
+alembic==1.14.0
+
+# Authentication, Cryptography & Security
+pyjwt==2.10.1
+passlib[bcrypt]==1.7.4
+bcrypt==4.2.1
+
+# Document Extraction & PDF Parsing
+pymupdf==1.25.1
+
+# ChromaDB Vector Database & Client
+chromadb==0.5.23
+
+# Embeddings
+sentence-transformers==3.3.1
+
+# LLM Providers (Groq & OpenAI compatibility)
+groq==0.15.0
+httpx==0.28.1
+
+# Monitoring & Prometheus Instrumentation
+prometheus-client==0.21.1
+prometheus-fastapi-instrumentator==7.0.2
+
+# Testing & Quality
+pytest==8.3.4
+pytest-asyncio==0.25.0
