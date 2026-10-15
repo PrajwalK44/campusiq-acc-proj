@@ -128,14 +128,14 @@ export default function StudentDashboard() {
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900 bg-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
             </div>
             <div>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
               >
                 <option value="Academics">Academics</option>
                 <option value="Examinations">Examinations</option>

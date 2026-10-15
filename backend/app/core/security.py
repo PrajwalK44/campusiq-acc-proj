@@ -1,6 +1,12 @@
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Any, Union
 import jwt
+
+# Compatibility shim: passlib 1.7.4 expects bcrypt.__about__.__version__, which was removed in bcrypt >= 4.1.0
+import bcrypt
+if not hasattr(bcrypt, "__about__"):
+    bcrypt.__about__ = type("about", (), {"__version__": getattr(bcrypt, "__version__", "4.0.0")})
+
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer

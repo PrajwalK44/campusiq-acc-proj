@@ -51,24 +51,39 @@ class LLMService:
 
         if not self.client:
             # Fallback if GROQ_API_KEY is not yet supplied:
-            # Synthesize answer directly from highest-ranked context chunk
             top = context_chunks[0]
             return (
                 f"Based on {top['title']} (Page {top.get('page_number', 1)}): "
                 f"{top['text'][:300]}... [Configure GROQ_API_KEY in backend/.env for full LLM synthesis]"
             )
 
-        try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_content}
-                ],
-                temperature=0.1,
-                max_tokens=600,
-            )
-            return response.choices[0].message.content.strip()
-        except Exception as e:
-            logger.error(f"Error calling Groq LLM: {e}")
-            raise RuntimeError(f"LLM generation failed: {str(e)}")
+        candidate_models = [self.model]
+        for fallback_m in ["qwen/qwen3.8-27b", "openai/gpt-oss-120b"]:
+            if fallback_m not in candidate_models:
+                candidate_models.append(fallback_m)
+
+        last_error = None
+        for model_to_try in candidate_models:
+            try:
+                response = self.client.chat.completions.create(
+                    model=model_to_try,
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_content}
+                    ],
+                    temperature=0.1,
+                    max_tokens=600,
+                )
+                content = response.choices[0].message.content
+                if content and content.strip():
+                    return content.strip()
+            except Exception as e:
+                last_error = e
+                logger.warning(f"Groq LLM call with model '{model_to_try}' failed: {e}. Trying next candidate...")
+
+        logger.error(f"All LLM models failed. Last error: {last_error}")
+        top = context_chunks[0]
+        return (
+            f"Based on official college documents ({top['title']}, Page {top.get('page_number', 1)}):\n\n"
+            f"{top['text']}"
+        )

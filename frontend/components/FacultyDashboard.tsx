@@ -142,7 +142,7 @@ export default function FacultyDashboard() {
                   onChange={(e) => setResponseMessage(e.target.value)}
                   placeholder="Provide authoritative guidance, policy clarifications, or office hour instructions..."
                   required
-                  className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm leading-relaxed"
+                  className="w-full p-4 border border-gray-300 rounded-xl text-gray-900 bg-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm leading-relaxed"
                 />
 
                 <div className="flex justify-end gap-3">

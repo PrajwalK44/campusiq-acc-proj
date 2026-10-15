@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useSyncExternalStore } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { User, AuthResponse } from "@/types";
 import { apiRequest } from "@/lib/api";
 
@@ -14,33 +14,25 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-function subscribe(callback: () => void) {
-  window.addEventListener("storage", callback);
-  return () => window.removeEventListener("storage", callback);
-}
-
-function getStoredToken() {
-  if (typeof window === "undefined") return null;
-  return sessionStorage.getItem("campusiq_token");
-}
-
-function getStoredUser(): User | null {
-  if (typeof window === "undefined") return null;
-  const userJson = sessionStorage.getItem("campusiq_user");
-  if (!userJson) return null;
-  try {
-    return JSON.parse(userJson) as User;
-  } catch {
-    return null;
-  }
-}
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const initialToken = useSyncExternalStore(subscribe, getStoredToken, () => null);
-  const initialUser = useSyncExternalStore(subscribe, getStoredUser, () => null);
+  const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const [token, setToken] = useState<string | null>(initialToken);
-  const [user, setUser] = useState<User | null>(initialUser);
+  useEffect(() => {
+    try {
+      const storedToken = sessionStorage.getItem("campusiq_token");
+      const storedUser = sessionStorage.getItem("campusiq_user");
+      if (storedToken && storedUser) {
+        setToken(storedToken);
+        setUser(JSON.parse(storedUser) as User);
+      }
+    } catch (e) {
+      console.error("Failed to restore session from storage", e);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   const login = async (email: string, password: string) => {
     const res = await apiRequest<AuthResponse>("/auth/login", {
@@ -62,7 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isLoading: false }}>
+    <AuthContext.Provider value={{ user, token, login, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

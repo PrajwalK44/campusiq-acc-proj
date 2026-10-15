@@ -32,7 +32,7 @@ class RAGPipeline:
         # Step 1: Query embedding
         query_embedding = self.embedding_service.encode([question])[0]
 
-        # Step 2: Retrieve candidate chunks
+        # Step 2: Retrieve candidate chunks (with category filter if specified)
         results = self.vector_store.query_similar(
             query_embedding=query_embedding,
             top_k=settings.RAG_TOP_K,
@@ -44,35 +44,45 @@ class RAGPipeline:
         distances = results.get("distances", [[]])[0]
         ids = results.get("ids", [[]])[0]
 
-        if not documents:
-            abstention_msg = (
-                "I couldn't verify this information from the currently indexed college documents. "
-                "Please contact the relevant department or create a support ticket."
+        def extract_valid_chunks(docs, metas, dists, chunk_ids):
+            valid = []
+            best_sim = -1.0
+            for doc_text, meta, dist, chunk_id in zip(docs, metas, dists, chunk_ids):
+                similarity = 1.0 - float(dist)
+                if similarity > best_sim:
+                    best_sim = similarity
+
+                if similarity >= settings.RAG_SIMILARITY_THRESHOLD:
+                    valid.append({
+                        "chunk_id": chunk_id,
+                        "text": doc_text,
+                        "title": meta.get("title", "Unknown Document"),
+                        "page_number": meta.get("page_number"),
+                        "document_id": meta.get("document_id"),
+                        "similarity": similarity
+                    })
+            return valid, best_sim
+
+        valid_chunks, best_similarity = extract_valid_chunks(documents, metadatas, distances, ids)
+
+        # If category filter yielded no valid chunks, fallback to global search across all documents
+        if (not valid_chunks or best_similarity < settings.RAG_SIMILARITY_THRESHOLD) and category and category != "General":
+            logger.info(f"Category '{category}' filter yielded insufficient matches (best: {best_similarity:.4f}). Falling back to global search.")
+            global_results = self.vector_store.query_similar(
+                query_embedding=query_embedding,
+                top_k=settings.RAG_TOP_K,
+                category=None
             )
-            return abstention_msg, "ABSTAINED", []
+            g_docs = global_results.get("documents", [[]])[0]
+            g_metas = global_results.get("metadatas", [[]])[0]
+            g_dists = global_results.get("distances", [[]])[0]
+            g_ids = global_results.get("ids", [[]])[0]
+            g_valid, g_best = extract_valid_chunks(g_docs, g_metas, g_dists, g_ids)
+            if g_valid and g_best >= settings.RAG_SIMILARITY_THRESHOLD:
+                valid_chunks = g_valid
+                best_similarity = g_best
 
-        # Cosine distance in ChromaDB is in [0, 2], where 0 is identical
-        # Cosine similarity = 1 - (distance / 2) or 1 - distance depending on metric
-        # For HNSW cosine space: similarity = 1.0 - distance
-        valid_chunks = []
-        best_similarity = -1.0
-
-        for doc_text, meta, dist, chunk_id in zip(documents, metadatas, distances, ids):
-            similarity = 1.0 - float(dist)
-            if similarity > best_similarity:
-                best_similarity = similarity
-
-            if similarity >= settings.RAG_SIMILARITY_THRESHOLD:
-                valid_chunks.append({
-                    "chunk_id": chunk_id,
-                    "text": doc_text,
-                    "title": meta.get("title", "Unknown Document"),
-                    "page_number": meta.get("page_number"),
-                    "document_id": meta.get("document_id"),
-                    "similarity": similarity
-                })
-
-        logger.info(f"Query: '{question}' | Best similarity: {best_similarity:.4f} | Threshold: {settings.RAG_SIMILARITY_THRESHOLD}")
+        logger.info(f"Query: '{question}' | Category: '{category}' | Best similarity: {best_similarity:.4f} | Threshold: {settings.RAG_SIMILARITY_THRESHOLD} | Chunks: {len(valid_chunks)}")
 
         if not valid_chunks or best_similarity < settings.RAG_SIMILARITY_THRESHOLD:
             abstention_msg = (

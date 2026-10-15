@@ -22,7 +22,7 @@ class Settings(BaseSettings):
 
     # LLM Settings (Groq)
     GROQ_API_KEY: Optional[str] = None
-    LLM_MODEL: str = "llama-3.3-70b-versatile"
+    LLM_MODEL: str = "qwen/qwen3.8-27b"
 
     # Embeddings
     EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"

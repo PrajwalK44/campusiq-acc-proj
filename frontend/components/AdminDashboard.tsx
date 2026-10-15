@@ -146,7 +146,7 @@ export default function AdminDashboard() {
               value={uploadTitle}
               onChange={(e) => setUploadTitle(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -155,7 +155,7 @@ export default function AdminDashboard() {
             <select
               value={uploadCategory}
               onChange={(e) => setUploadCategory(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
             >
               <option value="Academics">Academics</option>
               <option value="Examinations">Examinations</option>

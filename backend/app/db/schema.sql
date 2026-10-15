@@ -117,11 +117,11 @@ CREATE INDEX IF NOT EXISTS idx_audit_events_created_at ON audit_events(created_a
 
 -- ==============================================================================
 -- Default Seed Users (Passwords are hashed for: "Password123!")
--- Hash: $2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW
+-- Hash: $2b$12$ZwFruLk1LqRiGAWi9sRYNOwM57YJNcDjiugIlNTxdq7g0D1TeGlCC
 -- ==============================================================================
 INSERT INTO users (full_name, email, password_hash, role, is_active)
 VALUES 
-    ('System Administrator', 'admin@campusiq.edu', '$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', 'ADMIN', true),
-    ('Dr. Alan Turing', 'faculty@campusiq.edu', '$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', 'FACULTY', true),
-    ('Alex Johnson', 'student@campusiq.edu', '$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', 'STUDENT', true)
+    ('System Administrator', 'admin@campusiq.edu', '$2b$12$ZwFruLk1LqRiGAWi9sRYNOwM57YJNcDjiugIlNTxdq7g0D1TeGlCC', 'ADMIN', true),
+    ('Dr. Alan Turing', 'faculty@campusiq.edu', '$2b$12$ZwFruLk1LqRiGAWi9sRYNOwM57YJNcDjiugIlNTxdq7g0D1TeGlCC', 'FACULTY', true),
+    ('Alex Johnson', 'student@campusiq.edu', '$2b$12$ZwFruLk1LqRiGAWi9sRYNOwM57YJNcDjiugIlNTxdq7g0D1TeGlCC', 'STUDENT', true)
 ON CONFLICT (email) DO NOTHING;

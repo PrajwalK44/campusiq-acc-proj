@@ -18,7 +18,7 @@ services:
       timeout: 5s
       retries: 3
 
-  # FastAPI Backend Service
+  # FastAPI Backend Service (with Hot-Reload volume mount)
   backend:
     build:
       context: .
@@ -32,6 +32,8 @@ services:
       - "8000:8000"
     volumes:
       - backend-uploads:/app/data/uploads
+      - ./backend:/app/backend:ro
+    command: ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     environment:
       - APP_NAME=CampusIQ
       - APP_ENV=production
@@ -42,7 +44,7 @@ services:
       - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@localhost:5432/postgres}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY:-default_secret_key_change_in_production_123456}
       - GROQ_API_KEY=${GROQ_API_KEY}
-      - LLM_MODEL=${LLM_MODEL:-llama-3.3-70b-versatile}
+      - LLM_MODEL=${LLM_MODEL:-qwen/qwen3.8-27b}
       - CHROMA_MODE=server
       - CHROMA_SERVER_HOST=chromadb
       - CHROMA_SERVER_PORT=8000
